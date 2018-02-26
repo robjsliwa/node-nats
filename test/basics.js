@@ -251,7 +251,7 @@ describe('Basics', function() {
     it('should parse json messages', function(done) {
         var config = {
             port: PORT,
-            json: true,
+            json: true
         };
         var nc = NATS.connect(config);
         var jsonMsg = {
@@ -335,8 +335,7 @@ describe('Basics', function() {
         done();
     });
 
-    it('should do requestone-get-reply', function(done) {
-        var nc = NATS.connect(PORT);
+    function requestOneGetsReply(nc, done) {
         var initMsg = 'Hello World';
         var replyMsg = 'Hello Back!';
 
@@ -358,13 +357,20 @@ describe('Basics', function() {
                 done();
             }
         });
+    }
+
+    it('should do requestone-get-reply', function(done) {
+        var nc = NATS.connect(PORT);
+        requestOneGetsReply(nc, done);
     });
 
-    it('should do requestone-will-unsubscribe', function(done) {
-        // eslint-disable-next-line
-        this.timeout(3000);
+    it('oldRequestOne should do requestone-get-reply', function(done) {
+        var nc = NATS.connect({port: PORT, useOldRequestStyle: true});
+        requestOneGetsReply(nc, done);
+    });
+
+    function requestOneWillUnsubscribe(nc, done) {
         var rsub = "x.y.z";
-        var nc = NATS.connect(PORT);
         var count = 0;
 
         nc.subscribe(rsub, function(msg, reply) {
@@ -388,11 +394,23 @@ describe('Basics', function() {
             should.exist(reply);
             count++;
         });
+    }
+
+    it('should do requestone-will-unsubscribe', function(done) {
+        // eslint-disable-next-line
+        this.timeout(3000);
+        var nc = NATS.connect(PORT);
+        requestOneWillUnsubscribe(nc, done);
     });
 
+    it('oldRequest: should do requestone-will-unsubscribe', function(done) {
+        // eslint-disable-next-line
+        this.timeout(3000);
+        var nc = NATS.connect({port: PORT, useOldRequestStyle: true});
+        requestOneWillUnsubscribe(nc, done);
+    });
 
-    it('should do requestone-can-timeout', function(done) {
-        var nc = NATS.connect(PORT);
+    function requestTimeoutTest(nc, done) {
         nc.requestOne('a.b.c', '', null, 1000, function(reply) {
             should.exist(reply);
             reply.should.be.instanceof(NATS.NatsError);
@@ -400,14 +418,19 @@ describe('Basics', function() {
             nc.close();
             done();
         });
+    }
+
+    it('should do requestone-can-timeout', function(done) {
+        var nc = NATS.connect(PORT);
+        requestTimeoutTest(nc, done);
     });
 
+    it('old request one - should do requestone-can-timeout', function(done) {
+        var nc = NATS.connect({port: PORT, useOldRequestStyle: true});
+        requestTimeoutTest(nc, done);
+    });
 
-    it('should unsubscribe when request one timesout', function(done) {
-        // eslint-disable-next-line
-        this.timeout(3000);
-        var nc = NATS.connect(PORT);
-
+    function shouldUnsubscribeWhenRequestOneTimeout(nc, done) {
         var replies = 0;
         var responses = 0;
         // set a subscriber to respond to the request
@@ -436,5 +459,19 @@ describe('Basics', function() {
             should(responses).equal(0);
             done();
         }, 1000);
+    }
+
+    it('should unsubscribe when request one timesout', function(done) {
+        // eslint-disable-next-line
+        this.timeout(3000);
+        var nc = NATS.connect(PORT);
+        shouldUnsubscribeWhenRequestOneTimeout(nc, done);
+    });
+
+    it('old requestOne should unsubscribe when request one timesout', function(done) {
+        // eslint-disable-next-line
+        this.timeout(3000);
+        var nc = NATS.connect({port: PORT, useOldRequestStyle: true});
+        shouldUnsubscribeWhenRequestOneTimeout(nc, done);
     });
 });
