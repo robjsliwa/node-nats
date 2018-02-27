@@ -1,3 +1,7 @@
+# Updated to allow JWT as an authorization mechanism with gnatsd.
+This is small update to make client accept JWTs as auth for gnatsd.  See https://github.com/robjsliwa/gnatsd for gantsd changes for to support JWTs.
+
+# ORIGINAL README below
 # NATS - Node.js Client
 
 A [Node.js](http://nodejs.org/) client for the [NATS messaging system](https://nats.io).
